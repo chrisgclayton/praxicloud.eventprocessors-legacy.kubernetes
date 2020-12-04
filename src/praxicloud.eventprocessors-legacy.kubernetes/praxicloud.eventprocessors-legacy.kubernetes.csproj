@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>PraxiCloud-EventProcessors-Legacy-Kubernetes</PackageId>
+    <Description>PraxiCloud libraries offer a range of common functions, features and base classes to use when building solutions, increasing the time to delivery. This library includes a base container implementation using stateful sets to operate on Kubernetes.</Description>
+    <PackageTags>praxicloud utilities event processor host lease blob checkpoint epoch kubernetes statefulset</PackageTags>
+    <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+    <AssemblyVersion>1.0.11.0</AssemblyVersion>
+    <FileVersion>1.0.11.0</FileVersion>
+    <Copyright>© Christopher Clayton. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/chrisgclayton/praxicloud.eventprocessors-legacy.kubernetes</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/chrisgclayton/praxicloud.eventprocessors-legacy.kubernetes</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.2.0" />
+    <PackageReference Include="PraxiCloud-Core-Kubernetes" Version="2.3.1" />
+    <PackageReference Include="PraxiCloud-Core-Metrics-Prometheus" Version="2.3.2" />
+    <PackageReference Include="PraxiCloud-Core-Security-KeyVault" Version="2.3.0" />
+    <PackageReference Include="PraxiCloud-EventProcessors-Legacy" Version="1.2.0" />
+  </ItemGroup>
+
+</Project>
