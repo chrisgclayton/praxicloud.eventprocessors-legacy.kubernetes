@@ -35,7 +35,7 @@ namespace praxicloud.eventprocessors_legacy.kubernetes
         /// <returns>The event processor</returns>
         public override IEventProcessor CreateEventProcessor(PartitionContext context)
         {
-            return (T)Activator.CreateInstance(typeof(T), context, LoggerFactory, MetricFactory);
+            return (IEventProcessor)Activator.CreateInstance(typeof(T), context, LoggerFactory, MetricFactory);
         }
         #endregion
     }

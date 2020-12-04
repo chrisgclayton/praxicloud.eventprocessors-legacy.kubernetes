@@ -245,7 +245,7 @@ namespace praxicloud.eventprocessors_legacy.kubernetes
         }
 
         /// <inheritdoc />
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        protected sealed override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             Logger.LogInformation("Started execution loop");
 
