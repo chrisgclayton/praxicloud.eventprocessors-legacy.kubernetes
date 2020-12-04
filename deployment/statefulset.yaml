@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-legacy-eph-service
+  namespace: demonamespace
+  labels:
+      app: demo-container-app
+spec:
+  loadBalancerIP: {Public IP Address}
+  type: LoadBalancer
+  ports:
+  - name: prometheus-port
+    port: 9600
+    targetPort: 9600
+  selector:
+      app: demo-legacy-processor
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: legacy-event-processor
+  namespace: demonamespace
+spec:
+  serviceName: demo-legacy-eph-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-legacy-processor
+      component: demo-eph
+  template:
+    metadata:
+      labels:
+        app: demo-legacy-processor
+        component: demo-eph
+        version: legacy
+        aadpodidbinding: demouser
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: agentpool
+                operator: In
+                values:
+                - worker
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  component: demo-eph
+              namespaces:
+              - demonamespace
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      serviceAccountName: demosrvact
+      containers:
+      - name: legacy-eph
+        image: {ACR Login Server}/legacyeventprocessor:001
+        resources:
+          requests:          
+            cpu: 1
+            memory: 512Mi
+          limits:          
+            cpu: 2
+            memory: 1024Mi
+        livenessProbe:
+          tcpSocket:
+            port: 10101
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          tcpSocket:
+            port: 10102
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1 
+        volumeMounts:
+          - name: azure
+            mountPath: /mnt/checkpoints
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: PrometheusPort
+            value: "9600"
+          - name: CheckpointStore
+            value: "/mnt/checkpoints/default"
+          - name: KeyVaultName
+            value: "{Key Vault Name}.vault.azure.net"
+          - name: HubSecretName
+            value: "hubconnection"
+          - name: TenantId
+            value: "{Tenant Id}"
+          - name: ClientId
+            value: "{Client Id}"
+          - name: ClientSecret
+            value: "{Client Secret}"      
+          - name: ConsumerGroup
+            value: "$default"	  
+          - name: StorageSecretName
+            value: "checkpointstorage"	  
+          - name: CheckpointContainerName
+            value: "checkpoints"	  
+          - name: EventProcessorHostName
+            value: "legacyhost"	  
+          - name: LeaseDurationSeconds
+            value: "20"	  
+          - name: LeaseRenewalSeconds
+            value: "10"	  
+          - name: EpochContainerName
+            value: "epochs"	  
+          - name: ReceiveTimeoutSeconds
+            value: "60"
+          - name: PrefetchCount
+            value: "300"
+          - name: MaxBatchSize
+            value: "100"
+          - name: IterationSeconds
+            value: "15"
+          - name: ReadinessProbePort
+            value: "10102"
+          - name: HealthProbePort
+            value: "10101"
+          - name: UseTcpProbe
+            value: "true"
+          - name: PartitionManagerLogLevel
+            value: "Warning"
+          - name: EpochRecorderLogLevel
+            value: "Warning"
+          - name: LeaseManagerLogLevel
+            value: "Warning"
+          - name: CheckpointManagerLogLevel
+            value: "Warning"
+          - name: LogLevel
+            value: "Information"
+          - name: ProcessorName
+            value: "IngestReader"
+          - name: StartPosition
+            value: "start"
+      volumes:
+        - name: azure
+          azureFile:
+            secretName: azure-persisted-storage-secret
+            shareName: checkpointvolumes
+            readOnly: false
+      restartPolicy: Always
